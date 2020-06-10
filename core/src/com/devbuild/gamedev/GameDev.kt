@@ -53,18 +53,24 @@ class Knight : Actor {
         s.addActor(this)
 
         this.width = 16f
-        this.height = 16f
+        this.height = 32f
     }
 
     val texture = TextureRegion(Texture(Gdx.files.internal("frames/knight_f_idle_anim_f0.png")))
-    val animation = loadAnimationFromFiles()
+    var animation = loadAnimationFromSheet("knight_l.png", 16, 32, 1, 9)//loadAnimationFromFiles()
     var elapsedTime = 0f
+
+    val anim1 = loadAnimationFromSheet("knight_l.png", 16, 32, 1, 9)//loadAnimationFromFiles()
+    val anim2 = loadAnimationFromSheet("knight_r.png", 16, 32, 1, 9)//loadAnimationFromFiles()
 
     private val velocityVec: Vector2 = Vector2(0f,0f)
     private val accelerationVec: Vector2 = Vector2(0f,0f)
     private var acceleration = 400f
     private var maxSpeed = 100f
     private var deceleration = 400f
+
+    fun anim1() {animation = anim1}
+    fun anim2() {animation = anim2}
 
     private fun loadAnimationFromFiles(): Animation<TextureRegion> {
         val fileNames = arrayOf("frames/knight_f_idle_anim_f0.png", "frames/knight_f_idle_anim_f1.png", "frames/knight_f_idle_anim_f2.png", "frames/knight_f_idle_anim_f3.png")
@@ -82,6 +88,18 @@ class Knight : Actor {
         val anim = Animation<TextureRegion>(0.1f, textureArray)
         anim.playMode = Animation.PlayMode.LOOP
 
+        return anim
+    }
+
+    fun loadAnimationFromSheet(fileName: String, frameWidth: Int, frameHeight: Int, startCol: Int, endCol: Int, frameDuration: Float = .1f, loop: Boolean = true): Animation<TextureRegion> {
+        val texture = Texture(Gdx.files.internal(fileName), true)
+        texture.setFilter(TextureFilter.Linear, TextureFilter.Linear)
+        val temp = TextureRegion.split(texture, frameWidth, frameHeight)
+        val textureArray = com.badlogic.gdx.utils.Array<TextureRegion>()
+        for (c in startCol until endCol) textureArray.add(temp[0][c])
+        val anim = Animation<TextureRegion>(frameDuration, textureArray)
+        if (loop) anim.setPlayMode(Animation.PlayMode.LOOP) else anim.setPlayMode(Animation.PlayMode.NORMAL)
+        //if (animation == null) setAnimation(anim)
         return anim
     }
 
@@ -123,20 +141,6 @@ class Knight : Actor {
         super.act(dt)
 
         elapsedTime += dt;
-
-//        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) x++
-//        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) x--
-//        if (Gdx.input.isKeyPressed(Input.Keys.UP)) y++
-//        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) y--
-
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT))
-            accelerateAtAngle(180f);
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT))
-            accelerateAtAngle(0f);
-        if (Gdx.input.isKeyPressed(Input.Keys.UP))
-            accelerateAtAngle(90f);
-        if (Gdx.input.isKeyPressed(Input.Keys.DOWN))
-            accelerateAtAngle(270f);
 
         alignCamera()
         applyPhysics(dt)
@@ -202,6 +206,22 @@ class LevelScreen : Screen {
     }
 
     override fun render(dt: Float) {
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+            knight.accelerateAtAngle(180f);
+            knight.anim1()
+            //animation = anim1
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+            knight.accelerateAtAngle(0f);
+            knight.anim2()
+            //animation = anim2
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.UP))
+            knight.accelerateAtAngle(90f);
+        if (Gdx.input.isKeyPressed(Input.Keys.DOWN))
+            knight.accelerateAtAngle(270f);
+
+
         mainStage.act(dt);
         // update(dt);
 
