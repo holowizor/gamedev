@@ -8,6 +8,8 @@ import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
+import kotlin.math.floor
+import kotlin.random.Random
 
 abstract class BaseActor : Actor {
     constructor(x: Float, y: Float, s: Stage) {
@@ -93,6 +95,84 @@ abstract class BaseActor : Actor {
         batch.draw(animation.getKeyFrame(elapsedTime),
                 x, y, originX, originY,
                 width, height, scaleX, scaleY, rotation);
+        super.draw(batch, parentAlpha)
+    }
+}
+
+class World(s: Stage) : Actor() {
+    val worldData = arrayOf(
+            "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x",
+            "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x",
+            "x", "x", "x", "x", "x", "x", "o", "o", "x", "x", "x", "x",
+            "x", "x", "x", "x", "x", "o", "o", "o", "x", "x", "x", "x",
+            "x", "x", "x", "x", "o", "o", "o", "o", "x", "x", "x", "x",
+            "x", "x", "x", "x", "o", "o", "o", "o", "x", "x", "x", "x",
+            "x", "x", "x", "o", "o", "o", "x", "x", "x", "x", "x", "x",
+            "x", "x", "x", "o", "o", "o", "x", "x", "x", "x", "x", "x",
+            "x", "x", "x", "o", "o", "o", "x", "x", "x", "x", "x", "x",
+            "x", "x", "x", "o", "o", "o", "x", "x", "x", "x", "x", "x",
+            "x", "x", "x", "o", "o", "o", "o", "x", "x", "x", "x", "x",
+            "x", "x", "x", "o", "o", "o", "o", "o", "x", "x", "x", "x",
+            "x", "x", "x", "x", "x", "x", "o", "o", "o", "o", "o", "x",
+            "x", "x", "x", "x", "x", "x", "x", "x", "o", "o", "o", "x",
+            "x", "x", "x", "x", "x", "x", "x", "x", "o", "o", "o", "x",
+            "x", "x", "x", "x", "x", "x", "x", "x", "o", "o", "o", "x",
+            "x", "x", "x", "x", "x", "x", "o", "o", "o", "o", "o", "x",
+            "x", "x", "o", "o", "o", "o", "s", "o", "x", "x", "x", "x",
+            "x", "x", "o", "o", "o", "x", "x", "x", "x", "x", "x", "x",
+            "x", "x", "x", "x", "o", "o", "o", "x", "x", "x", "x", "x",
+            "x", "x", "o", "o", "o", "o", "o", "x", "x", "o", "o", "x",
+            "x", "x", "o", "o", "o", "o", "o", "o", "o", "o", "o", "x",
+            "x", "x", "x", "o", "o", "o", "o", "o", "o", "o", "o", "x",
+            "x", "x", "x", "o", "o", "o", "o", "o", "o", "o", "o", "x",
+            "x", "x", "o", "o", "x", "o", "o", "x", "o", "o", "x", "x",
+            "x", "x", "o", "x", "x", "x", "x", "x", "x", "x", "x", "x",
+            "x", "o", "o", "x", "x", "x", "x", "x", "x", "x", "x", "x",
+            "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x"
+    )
+
+    val floor = initFloor(s)
+
+    private fun initFloor(s: Stage): Array<Tile> {
+        return worldData.mapIndexed { index, ch -> Tile(index, ch, s) }.toTypedArray()
+    }
+
+    override fun draw(batch: Batch, parentAlpha: Float) {
+        super.draw(batch, parentAlpha)
+    }
+}
+
+class Tile(index: Int, val ch: String, s: Stage) : Actor() {
+    companion object {
+        private val floorTextureArr = arrayOf(
+                textureHelper.loadTexture("floor_1.png"),
+                textureHelper.loadTexture("floor_2.png"),
+                textureHelper.loadTexture("floor_3.png"),
+                textureHelper.loadTexture("floor_4.png"),
+                textureHelper.loadTexture("floor_5.png"),
+                textureHelper.loadTexture("floor_6.png")
+        )
+        private val floorEmpty = textureHelper.loadTexture("floor_empty.png")
+    }
+
+    private val tex: TextureRegion
+
+    init {
+        x = (index % 12).toFloat() * 16
+        y = (index / 12).toFloat() * 16
+        width = 16f
+        height = 16f
+
+        tex = when (ch) {
+            "x" -> floorEmpty
+            else -> floorTextureArr[Random.nextInt(0, 6)]
+        }
+
+        s.addActor(this)
+    }
+
+    override fun draw(batch: Batch, parentAlpha: Float) {
+        batch.draw(tex, x, y);
         super.draw(batch, parentAlpha)
     }
 }

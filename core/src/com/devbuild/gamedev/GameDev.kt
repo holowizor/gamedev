@@ -66,7 +66,8 @@ fun Stage.knight(init: Knight.() -> Unit): Knight {
 
 class LevelScreen : Screen {
     val mainStage = Stage()
-    val dungeon = Dungeon(0f, 0f, this.mainStage)
+    //val dungeon = Dungeon(0f, 0f, this.mainStage)
+    val world = World(mainStage)
     val knight = mainStage.knight {
         x = 10f
         y = 10f
