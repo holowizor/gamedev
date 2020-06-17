@@ -8,7 +8,6 @@ import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
-import kotlin.math.floor
 import kotlin.random.Random
 
 abstract class BaseActor : Actor {
@@ -26,6 +25,7 @@ abstract class BaseActor : Actor {
     private var acceleration = 400f
     var maxSpeed = 100f
     var deceleration = 400f
+    var moveByPossibleFun: (dx: Float, dy: Float) -> Boolean = { dx, dy -> true }
 
     fun alignCamera() {
         val cam: Camera = stage.camera
@@ -51,8 +51,8 @@ abstract class BaseActor : Actor {
         }
 
         // bound camera to layout
-        cam.position.x = MathUtils.clamp(cam.position.x, cam.viewportWidth / 2, worldBounds.width - cam.viewportWidth / 2)
-        cam.position.y = MathUtils.clamp(cam.position.y, cam.viewportHeight / 2, worldBounds.height - cam.viewportHeight / 2)
+        //cam.position.x = MathUtils.clamp(cam.position.x, cam.viewportWidth / 2, worldBounds.width - cam.viewportWidth / 2)
+        //cam.position.y = MathUtils.clamp(cam.position.y, cam.viewportHeight / 2, worldBounds.height - cam.viewportHeight / 2)
         cam.update()
     }
 
@@ -79,7 +79,9 @@ abstract class BaseActor : Actor {
         setSpeed(speed)
 
         // update position according to value stored in velocity vector
-        moveBy(velocityVec.x * dt, velocityVec.y * dt)
+        if (moveByPossibleFun(velocityVec.x * dt, velocityVec.y * dt)) {
+            moveBy(velocityVec.x * dt, velocityVec.y * dt)
+        }
 
         // reset acceleration
         accelerationVec[0f] = 0f
@@ -104,7 +106,7 @@ class World(s: Stage) : Actor() {
             "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x",
             "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x",
             "x", "x", "x", "x", "x", "x", "o", "o", "x", "x", "x", "x",
-            "x", "x", "x", "x", "x", "o", "o", "o", "x", "x", "x", "x",
+            "x", "x", "x", "x", "x", "o", "s", "o", "x", "x", "x", "x",
             "x", "x", "x", "x", "o", "o", "o", "o", "x", "x", "x", "x",
             "x", "x", "x", "x", "o", "o", "o", "o", "x", "x", "x", "x",
             "x", "x", "x", "o", "o", "o", "x", "x", "x", "x", "x", "x",
@@ -118,7 +120,7 @@ class World(s: Stage) : Actor() {
             "x", "x", "x", "x", "x", "x", "x", "x", "o", "o", "o", "x",
             "x", "x", "x", "x", "x", "x", "x", "x", "o", "o", "o", "x",
             "x", "x", "x", "x", "x", "x", "o", "o", "o", "o", "o", "x",
-            "x", "x", "o", "o", "o", "o", "s", "o", "x", "x", "x", "x",
+            "x", "x", "o", "o", "o", "o", "o", "o", "x", "x", "x", "x",
             "x", "x", "o", "o", "o", "x", "x", "x", "x", "x", "x", "x",
             "x", "x", "x", "x", "o", "o", "o", "x", "x", "x", "x", "x",
             "x", "x", "o", "o", "o", "o", "o", "x", "x", "o", "o", "x",
@@ -131,7 +133,16 @@ class World(s: Stage) : Actor() {
             "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x"
     )
 
-    val floor = initFloor(s)
+    var spawnPoint = Vector2(0f, 0f)
+
+    init {
+        initFloor(s)
+        findSpawnPoint();
+    }
+
+    private fun findSpawnPoint() {
+        worldData.forEachIndexed { i, ch -> if (ch == "s") spawnPoint = Vector2((16 * (i % 12) + 8).toFloat(), (16 * (i / 12) + 8).toFloat()) }
+    }
 
     private fun initFloor(s: Stage): Array<Tile> {
         return worldData.mapIndexed { index, ch -> Tile(index, ch, s) }.toTypedArray()
@@ -140,6 +151,8 @@ class World(s: Stage) : Actor() {
     override fun draw(batch: Batch, parentAlpha: Float) {
         super.draw(batch, parentAlpha)
     }
+
+    fun inside(x: Float, y: Float): Boolean = worldData[(y.toInt()/16) * 12 + x.toInt()/16] != "x"
 }
 
 class Tile(index: Int, val ch: String, s: Stage) : Actor() {

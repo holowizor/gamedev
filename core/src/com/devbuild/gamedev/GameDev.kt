@@ -11,34 +11,34 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
 
-object worldBounds {
-    var width: Float = 0f;
-    var height: Float = 0f;
-}
+//object worldBounds {
+//    var width: Float = 0f;
+//    var height: Float = 0f;
+//}
 
-class Dungeon : Actor {
-    constructor(x: Float, y: Float, s: Stage) {
-        this.x = x
-        this.y = y
-        s.addActor(this)
-
-        this.width = 3500f
-        this.height = 4000f
-
-        worldBounds.width = this.width
-        worldBounds.height = this.height
-    }
-
-    var texture = TextureRegion(Texture(Gdx.files.internal("sample-bg.jpg")))
-
-    override fun draw(batch: Batch, parentAlpha: Float) {
-        super.draw(batch, parentAlpha)
-
-        batch.draw(texture,
-                x, y, originX, originY,
-                width, height, scaleX, scaleY, rotation)
-    }
-}
+//class Dungeon : Actor {
+//    constructor(x: Float, y: Float, s: Stage) {
+//        this.x = x
+//        this.y = y
+//        s.addActor(this)
+//
+//        this.width = 3500f
+//        this.height = 4000f
+//
+//        worldBounds.width = this.width
+//        worldBounds.height = this.height
+//    }
+//
+//    var texture = TextureRegion(Texture(Gdx.files.internal("sample-bg.jpg")))
+//
+//    override fun draw(batch: Batch, parentAlpha: Float) {
+//        super.draw(batch, parentAlpha)
+//
+//        batch.draw(texture,
+//                x, y, originX, originY,
+//                width, height, scaleX, scaleY, rotation)
+//    }
+//}
 
 class Knight(x: Float, y: Float, stage: Stage) : BaseActor(x, y, stage) {
     val anim1 = textureHelper.loadAnimation("knight_l.png", 16, 32, 1, 9)//loadAnimationFromFiles()
@@ -59,9 +59,9 @@ class Knight(x: Float, y: Float, stage: Stage) : BaseActor(x, y, stage) {
 }
 
 fun Stage.knight(init: Knight.() -> Unit): Knight {
-    val html = Knight(0f, 0f, this)
-    html.init()
-    return html
+    val actor = Knight(0f, 0f, this)
+    actor.init()
+    return actor
 }
 
 class LevelScreen : Screen {
@@ -69,13 +69,14 @@ class LevelScreen : Screen {
     //val dungeon = Dungeon(0f, 0f, this.mainStage)
     val world = World(mainStage)
     val knight = mainStage.knight {
-        x = 10f
-        y = 10f
+        x = world.spawnPoint.x
+        y = world.spawnPoint.y
         width = 16f
         height = 32f
         animation = anim1
         maxSpeed = 200f
         deceleration = 300f
+        moveByPossibleFun = { dx, dy -> world.inside(this.x + dx, this.y + dy)}
     }
 
     override fun hide() {
